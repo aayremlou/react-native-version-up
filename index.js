@@ -26,9 +26,19 @@ let minor = helpers.version(versions[1], argv.minor, argv.major);
 let patch = helpers.version(versions[2], argv.patch, argv.major || argv.minor);
 const version = `${major}.${minor}.${patch}`;
 
+
 // getting next build number
 const buildCurrent = helpers.getBuildNumberFromPlist(pathsToPlists[0]);
-const build = buildCurrent + 1;
+
+let build = 1;
+if (version !== versionCurrent) {
+  log.warning('\nNew version, build number will be reset to 1.');
+} else {
+  build = buildCurrent + 1;
+  log.warning('\nSame as current version, build number will be increased by 1.');
+}
+
+const versionCode = 1000000 * major + 10000 * minor + 100 * patch + build;
 
 // getting commit message
 const messageTemplate = argv.m || argv.message || 'release ${version}: increase versions and build numbers';
@@ -41,12 +51,8 @@ log.info(`- android project (${pathToGradle}).`, 1);
 
 log.notice(`\nThe version will be changed:`);
 log.notice(`- from: ${versionCurrent} (${buildCurrent});`, 1);
-log.notice(`- to:   ${version} (${build}).`, 1);
-
-// if (version === versionCurrent) {
-//   log.warning('\nNothing to change in the version. Canceled.');
-//   process.exit();
-// }
+log.notice(`- to: iOS version string: ${version}, bundle version: ${build}.`, 1);
+log.notice(`- to: Android versionName: ${version}, versionCode: ${versionCode}.`, 1);
 
 
 const chain = new Promise((resolve, reject) => {
@@ -79,7 +85,7 @@ const update = chain.then(() => {
 }).then(() => {
   log.info('Updating version in android project...', 1);
 
-  helpers.changeVersionAndBuildInGradle(pathToGradle, version, build);
+  helpers.changeVersionAndBuildInGradle(pathToGradle, version, versionCode);
   log.success(`Version and build number in android project (gradle file) changed.`, 2);
 });
 
