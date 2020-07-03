@@ -41,8 +41,9 @@ if (version !== versionCurrent) {
 const versionCode = 1000000 * major + 10000 * minor + 100 * patch + build;
 
 // getting commit message
-const messageTemplate = argv.m || argv.message || 'release ${version}: increase versions and build numbers';
-const message = messageTemplate.replace('${version}', version);
+const messageTemplate = argv.m || argv.message || 'release ${version} (${build})';
+const messageTemplateBuild.replace('${build}', build);
+const message = messageTemplateBuild.replace('${version}', version);
 
 log.info('\nI\'m going to increase the version in:');
 log.info(`- package.json (${pathToPackage});`, 1);
@@ -93,19 +94,31 @@ const commit = update.then(() => {
   log.notice(`\nI'm ready to cooperate with the git!`);
   log.info('I want to make a commit with message:', 1);
   log.info(`"${message}"`, 2);
-  log.info(`I want to add a tag:`, 1);
-  log.info(`"v${version}"`, 2);
+  if (version !== versionCurrent) {
+    log.info(`I want to add a tag:`, 1);
+    log.info(`"v${version}"`, 2);
+  }
 
   const question = log.info(`Do you allow me to do this? [y/n] `, 1, true);
   const answer = readlineSync.question(question).toLowerCase();
   if (answer === 'y') {
-    return helpers.commitVersionIncrease(version, message, [
-      pathToPackage,
-      ...pathsToPlists,
-      pathToGradle
-    ]).then(() => {
-      log.success(`Commit with files added. Run "git push".`, 1);
-    });
+    if (version !== versionCurrent) {
+      return helpers.commitVersionIncrease(version, message, [
+        pathToPackage,
+        ...pathsToPlists,
+        pathToGradle
+      ]).then(() => {
+        log.success(`Commit with files added. Run "git push".`, 1);
+      });
+    } else {
+      return helpers.commitBuildIncrease(version, message, [
+        pathToPackage,
+        ...pathsToPlists,
+        pathToGradle
+      ]).then(() => {
+        log.success(`Commit with files added. Run "git push".`, 1);
+      });
+    }
   } else {
     log.warning(`Skipped.`, 1);
   }
