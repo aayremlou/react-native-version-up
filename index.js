@@ -42,7 +42,7 @@ const versionCode = 1000000 * major + 10000 * minor + 100 * patch + build;
 
 // getting commit message
 const messageTemplate = argv.m || argv.message || 'release ${version} (${build})';
-const messageTemplateBuild.replace('${build}', build);
+const messageTemplateBuild = messageTemplate.replace('${build}', build);
 const message = messageTemplateBuild.replace('${version}', version);
 
 log.info('\nI\'m going to increase the version in:');
